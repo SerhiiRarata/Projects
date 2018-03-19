@@ -5,9 +5,10 @@
 #include <iostream>
 #include <conio.h>
 #include <Windows.h>
+#include <ctime>
 
 using namespace std;
-const int width = 70;
+const int width = 50;
 const int height = 20;
 
 char board[height][width];
@@ -56,7 +57,9 @@ void delAfterVaCham(Bullet *b);
 
 int _tmain(int argc, _TCHAR* argv[])
 {
+	const clock_t begin_time = clock();
 	Tank player;
+	int score = 0;
 
 	initPlayerTank(&player, 0);
 	drawPlayerTank(player);
@@ -70,6 +73,15 @@ int _tmain(int argc, _TCHAR* argv[])
 	SetConsoleCursorInfo( handle, &structCursorInfo );
 	
 	while (1){
+		{
+			textcolor(12);
+			gotoxy(55, 9);
+			cout << "Life: " << player.life << endl;
+			gotoxy(55, 10);
+			cout << "Score: " << score << endl;
+			gotoxy(55, 11);
+			cout << "Game time: " << float( clock () - begin_time ) /  CLOCKS_PER_SEC;
+		}
 		if (player.id == 0)
 			textcolor(12);
 		else
