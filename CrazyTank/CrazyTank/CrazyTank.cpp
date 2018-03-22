@@ -11,6 +11,8 @@ using namespace std;
 const int width = 50;
 const int height = 20;
 
+HANDLE hcon = GetStdHandle(STD_OUTPUT_HANDLE);
+
 char board[height][width];
 
 struct Bullet{
@@ -31,12 +33,9 @@ struct Tank{
 };
 
 void gotoxy(int x, int y);
-void textcolor(int color);
-void initBattleBoard();
 void drawBattleBoard();
 void drawMapToScreen();
 void clearBoard();
-void resetMap();
 void initPlayerTank(Tank *pTank, int id);
 void drawPlayerTank(Tank tank);
 void delPlayerTank(Tank tank);
@@ -65,6 +64,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	drawPlayerTank(player);
 	initBulletArr(&player);
 	drawBattleBoard();
+	drawMapToScreen();
 
 	void* handle = GetStdHandle(STD_OUTPUT_HANDLE);
 	CONSOLE_CURSOR_INFO structCursorInfo;
@@ -74,7 +74,6 @@ int _tmain(int argc, _TCHAR* argv[])
 	
 	while (1){
 		{
-			textcolor(12);
 			gotoxy(55, 9);
 			cout << "Life: " << player.life << endl;
 			gotoxy(55, 10);
@@ -82,11 +81,6 @@ int _tmain(int argc, _TCHAR* argv[])
 			gotoxy(55, 11);
 			cout << "Game time: " << float( clock () - begin_time ) /  CLOCKS_PER_SEC;
 		}
-		if (player.id == 0)
-			textcolor(12);
-		else
-			textcolor(2);
-		
 		drawMapToScreen();
 		
 		
@@ -133,18 +127,6 @@ void gotoxy(int x, int y){
 	SetConsoleCursorPosition(hOuput,scrn);
 }
 
-void textcolor(int color){
-	HANDLE hcon = GetStdHandle(STD_OUTPUT_HANDLE);
-    SetConsoleTextAttribute(hcon,color);
-}
-
-void initBattleBoard(){
-	for(int i = 0; i < height; i++){
-		for(int j = 0; j < width; j++){
-			board[i][j] = ' ';
-		}
-	}
-}
 
 void drawBattleBoard(){
 	for(int i = 0; i <= height + 1; i++)
@@ -163,6 +145,17 @@ void drawBattleBoard(){
 }
 
 void drawMapToScreen(){
+	for(int i = height - 1; i >= height - 2; i--){ 
+		for(int j = width / 2 - 2; j <= width / 2 + 2; j++){
+			if (i == height - 1 && j >= width / 2 - 1 && j <= width / 2 + 1)
+				board[i][j] = char(177);
+			else
+				board[i][j] = char(254);
+			SetConsoleTextAttribute(hcon,2);
+			
+		}
+	}
+
 	for(int i = 0; i < height; i++)
 	{
 		for(int j = 0; j < width; j++)
@@ -184,20 +177,12 @@ void clearBoard(){
 	}
 }
 
-void resetMap(){
-	for (int i = 0; i < height; i++)
-	{
-		for (int j = 0; j < width; j++)
-			board[i][j] = '\0';
-	}
-}
-
 void initPlayerTank(Tank *pTank, int id){
 	pTank -> id = id; 
 	pTank -> life = 3;
 	pTank -> angle = 0;
 	pTank -> iCoord = height - 3;
-	pTank -> jCoord = width / 2;
+	pTank -> jCoord = width / 2 + 10;
 	
 	pTank -> TankForm[0][0] = pTank -> TankForm[0][1] = 'x';
 	pTank -> TankForm[0][2] = ' ';
@@ -225,6 +210,7 @@ void delPlayerTank(Tank tank)
 			board[tank.iCoord + i][tank.jCoord + j] = ' ';
 	}
 }
+
 
 void rotateTank90(Tank *pTank)
 {
@@ -261,6 +247,11 @@ void goUp(Tank *pTank)
 {
 	if (pTank->iCoord == 0)
 		return;
+	for (int j = 0; j < width; j++){
+		if(board[pTank -> iCoord + 1][j] == char(254) && pTank -> jCoord >= j - 2 && pTank -> jCoord <= j)
+			return;
+	}
+
 	if (pTank->angle != 90)
 	{
 		while (pTank->angle != 90)
@@ -279,6 +270,11 @@ void goDown(Tank *pTank)
 {
 	if (pTank->iCoord == height - 3)
 		return;
+	for (int j = 0; j < width; j++){
+		if(board[pTank -> iCoord + 3][j] == char(254) && pTank -> jCoord >= j - 2 && pTank -> jCoord <= j)
+			return;
+	}
+
 	if(pTank->angle != 270)
 	{
 		while (pTank->angle != 270)
@@ -297,6 +293,12 @@ void goLeft(Tank *pTank)
 {
 	if (pTank->jCoord == 0)
 		return;
+
+	for (int i = 0; i < height; i++){
+		if(board[i][pTank -> jCoord - 1] == char(254) && pTank -> iCoord >= i - 2 && pTank -> iCoord <= i)
+			return;
+	}
+
 	if (pTank->angle != 180)
 	{
 		while (pTank->angle != 180)
@@ -312,8 +314,13 @@ void goLeft(Tank *pTank)
 }
 void goRight(Tank *pTank)
 {
-	if (pTank->jCoord == width - 3)
+	if (pTank->jCoord == width - 3) 
 		return;
+	for (int i = 0; i < height; i++){
+		if(board[i][pTank -> jCoord + 3] == char(254) && pTank -> iCoord >= i - 2 && pTank -> iCoord <= i)
+			return;
+	}
+
 	if (pTank->angle != 0)
 	{
 		while (pTank->angle != 0)
