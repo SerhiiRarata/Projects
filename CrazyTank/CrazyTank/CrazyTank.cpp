@@ -58,10 +58,16 @@ int _tmain(int argc, _TCHAR* argv[])
 {
 	const clock_t begin_time = clock();
 	Tank player;
+	Tank enemy;
+	Tank enemy_1;
 	int score = 0;
 
 	initPlayerTank(&player, 0);
+	initPlayerTank(&enemy, 1);
+	initPlayerTank(&enemy_1, 2);
 	drawPlayerTank(player);
+	drawPlayerTank(enemy);
+	drawPlayerTank(enemy_1);
 	initBulletArr(&player);
 	drawBattleBoard();
 	drawMapToScreen();
@@ -81,8 +87,6 @@ int _tmain(int argc, _TCHAR* argv[])
 			gotoxy(55, 11);
 			cout << "Game time: " << float( clock () - begin_time ) /  CLOCKS_PER_SEC;
 		}
-		drawMapToScreen();
-		
 		
 		if(_kbhit){
 			switch(_getch()){
@@ -111,12 +115,13 @@ int _tmain(int argc, _TCHAR* argv[])
 		}
 		
 		moveActiveBullet(&player);
-		drawMapToScreen();
+		drawPlayerTank(enemy);
+		drawPlayerTank(enemy_1);
+		drawMapToScreen();	
 		clearBoard();
 		gotoxy(1, 1);
 	}
 
-	system("PAUSE");
 	return 0;
 }
 
@@ -181,16 +186,66 @@ void initPlayerTank(Tank *pTank, int id){
 	pTank -> id = id; 
 	pTank -> life = 3;
 	pTank -> angle = 0;
-	pTank -> iCoord = height - 3;
-	pTank -> jCoord = width / 2 + 10;
-	
-	pTank -> TankForm[0][0] = pTank -> TankForm[0][1] = 'x';
-	pTank -> TankForm[0][2] = ' ';
-	pTank -> TankForm[1][0] = pTank -> TankForm[1][1] = 'x';
-	pTank -> TankForm[1][2] = 'x';
-	pTank -> TankForm[2][0] = pTank -> TankForm[2][1] = 'x';
-	pTank -> TankForm[2][2] = ' ';
+
+	switch(pTank -> id){
+	case 0:
+		pTank -> iCoord = height - 5;
+		pTank -> jCoord = width / 2;
+		break;
+	case 1:
+		srand(time(NULL));
+		pTank -> iCoord = rand() % (height - 10);
+		pTank -> jCoord = rand() % (width - 4);
+		break;
+	case 2:
+		bool isExist = true;
+		while(isExist == true){
+			int i = rand() % (height - 10);
+			int j = rand() % (width - 4);
+			pTank -> iCoord = i;
+			pTank -> jCoord = j;
+			for (int k = i - 2; k < i + 5; k++){
+				for (int m = j - 2; m < j + 5; m++){
+					if (board[k][m] != '0'){
+						isExist = false;
+					}
+				}
+			}
+		}
+		
+		break;
+	}
+
+	if (id == 0){
+		pTank -> TankForm[0][0] = pTank -> TankForm[0][1] = 'x';
+		pTank -> TankForm[0][2] = ' ';
+		pTank -> TankForm[1][0] = pTank -> TankForm[1][1] = 'x';
+		pTank -> TankForm[1][2] = 'x';
+		pTank -> TankForm[2][0] = pTank -> TankForm[2][1] = 'x';
+		pTank -> TankForm[2][2] = ' ';
+	}
+	else {
+		pTank -> TankForm[0][0] = pTank -> TankForm[0][1] = 'o';
+		pTank -> TankForm[0][2] = ' ';
+		pTank -> TankForm[1][0] = pTank -> TankForm[1][1] = 'o';
+		pTank -> TankForm[1][2] = 'o';
+		pTank -> TankForm[2][0] = pTank -> TankForm[2][1] = 'o';
+		pTank -> TankForm[2][2] = ' ';
+	}
 }
+	
+
+
+	/*srand(time(NULL));
+	while (count < tankNumber) {
+		int i = rand() % (height - 10);
+		int j = rand() % (width - 4);
+		for(int i; i < ; i--){ 
+			for(int j; j <= width / 2 + 2; j++){
+				if(board[i][j] != 'o') {
+					board[i][j] = 0;
+					count++;*/
+
 
 void drawPlayerTank(Tank tank){
 	for (int i = 0; i < 3; i++)
@@ -248,7 +303,8 @@ void goUp(Tank *pTank)
 	if (pTank->iCoord == 0)
 		return;
 	for (int j = 0; j < width; j++){
-		if(board[pTank -> iCoord + 1][j] == char(254) && pTank -> jCoord >= j - 2 && pTank -> jCoord <= j)
+		if((board[pTank -> iCoord - 1][j] == char(254) || board[pTank -> iCoord - 1][j] == 'o') 
+			&& pTank -> jCoord >= j - 2 && pTank -> jCoord <= j)
 			return;
 	}
 
@@ -271,7 +327,8 @@ void goDown(Tank *pTank)
 	if (pTank->iCoord == height - 3)
 		return;
 	for (int j = 0; j < width; j++){
-		if(board[pTank -> iCoord + 3][j] == char(254) && pTank -> jCoord >= j - 2 && pTank -> jCoord <= j)
+		if((board[pTank -> iCoord + 3][j] == char(254) || board[pTank -> iCoord + 3][j] == 'o')
+			&& pTank -> jCoord >= j - 2 && pTank -> jCoord <= j)
 			return;
 	}
 
@@ -295,7 +352,8 @@ void goLeft(Tank *pTank)
 		return;
 
 	for (int i = 0; i < height; i++){
-		if(board[i][pTank -> jCoord - 1] == char(254) && pTank -> iCoord >= i - 2 && pTank -> iCoord <= i)
+		if((board[i][pTank -> jCoord - 1] == char(254) || board[i][pTank -> jCoord - 1] == 'o') 
+			&& pTank -> iCoord >= i - 2 && pTank -> iCoord <= i)
 			return;
 	}
 
@@ -317,7 +375,8 @@ void goRight(Tank *pTank)
 	if (pTank->jCoord == width - 3) 
 		return;
 	for (int i = 0; i < height; i++){
-		if(board[i][pTank -> jCoord + 3] == char(254) && pTank -> iCoord >= i - 2 && pTank -> iCoord <= i)
+		if((board[i][pTank -> jCoord + 3] == char(254) || board[i][pTank -> jCoord + 3] == 'o') 
+			&& pTank -> iCoord >= i - 2 && pTank -> iCoord <= i)
 			return;
 	}
 
@@ -371,11 +430,9 @@ void initBullet(Bullet *pBullet, Tank tank)
 void drawBullet(Bullet b, int hostId)
 {
 	if (hostId == 0)
-		board[b.iPos][b.jPos] = 'x';
-	else if (hostId == 1)
 		board[b.iPos][b.jPos] = '*';
-	else if (hostId == 2)
-		board[b.iPos][b.jPos] = 'u';
+	else 
+		board[b.iPos][b.jPos] = 'o';
 }
 
 void delBullet(Bullet b)
